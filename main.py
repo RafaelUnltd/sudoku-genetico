@@ -1,11 +1,12 @@
 import pandas as pd
 import numpy as np
+import random
 
 CROSSOVER_RATE = 0.75
 MAX_ITERATIONS = 500
-MUTATION_RATE = 0.15
-POPULATION_SIZE = 200
-HALF_POPULATION_SIZE = 100
+MUTATION_RATE = 0.2
+POPULATION_SIZE = 300
+HALF_POPULATION_SIZE = 150
 
 BOUNDS = [[0,1,2],[3,4,5],[6,7,8]]
 MIN_VALUE = 1
@@ -94,13 +95,41 @@ def crossover(sudoku, parents, mask):
             children.append(parent2)
     return children
 
+def checkForMissingValuesAndChoose(i, j, child):
+    number = child[i][j]
+    hasValues = [number]
+
+    for k in range(len(child)):
+        if child[i][k] not in hasValues and k != j:
+            hasValues.append(child[i][k])
+        if child[k][j] not in hasValues and k != i:
+            hasValues.append(child[k][j])
+        
+
+    verticalBounds = BOUNDS[i//3]
+    horizontalBounds = BOUNDS[j//3]
+
+    for v in verticalBounds:
+        for h in horizontalBounds:
+            if child[v][h] not in hasValues and v != i and h != j:
+                hasValues.append(child[k][j])
+
+    returnValues = []
+    for i in range(9):
+        if i+1 not in hasValues:
+            returnValues.append(i+1)
+
+    if len(returnValues) == 0:
+        return np.random.randint(MIN_VALUE, MAX_VALUE+1)
+    return random.choice(returnValues)
+
 def mutate(children, mask):
     for child in children:
         for i in range(len(child)):
             for j in range(len(child)):
                 if mask[i][j] != 0:
                     if np.random.uniform(0, 1) <= MUTATION_RATE:
-                        child[i][j] = np.random.randint(MIN_VALUE, MAX_VALUE+1)
+                        child[i][j] = checkForMissingValuesAndChoose(i, j, child)
     return children
 
 def getCrossoverMask(sudoku):
