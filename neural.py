@@ -27,6 +27,8 @@ train_data, test_data = df[:train_size], df[train_size:]
 checkpoint_path = "models/sudoku.ckpt"
 checkpoint_dir = os.path.dirname(checkpoint_path)
 
+latest = tf.train.latest_checkpoint(checkpoint_dir)
+
 # Create a callback that saves the model's weights
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                  save_weights_only=True,
@@ -39,6 +41,8 @@ model.add(Dense(units=81 * 10, activation='softmax'))
 model.add(Reshape((81, 10)))
 
 model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+model.load_weights(latest)
 
 # Train the model
 model.fit(
