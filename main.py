@@ -154,11 +154,14 @@ def getInitialPopulation(sudoku, mask):
         individual = []
         for i in range(len(mask)):
             individual.append([])
+            options = [i+1 for i in range(9)]
             for j in range(len(mask)):
                 if mask[i][j] == 0:
                     individual[i].append(sudoku[i][j])
                 else:
-                    individual[i].append(np.random.randint(MIN_VALUE, MAX_VALUE+1))
+                    selected = options[np.random.randint(0, len(options))]
+                    individual[i].append(selected)
+                    options.remove(selected)
         population.append(individual)
     return population
 
