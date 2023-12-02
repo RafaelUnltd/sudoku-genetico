@@ -6,6 +6,30 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Reshape
 from tensorflow.keras.utils import to_categorical
 
+BOUNDS = [[0,1,2],[3,4,5],[6,7,8]]
+
+def calculateSolutionError(solution):
+    errors = 0
+    for i in range(len(solution)):
+        for j in range(len(solution)):
+            currentValue = solution[i][j]
+            for k in range(len(solution)):
+                if solution[k][j] == currentValue and k != i:
+                    errors += 1
+            for k in range(len(solution)):
+                if solution[i][k] == currentValue and k != j:
+                    errors += 1
+            
+            # Check for errors in the 3x3 matrix
+            verticalBounds = BOUNDS[i//3]
+            horizontalBounds = BOUNDS[j//3]
+
+            for v in verticalBounds:
+                for h in horizontalBounds:
+                    if solution[v][h] == currentValue and v != i and h != j:
+                        errors += 1
+    return errors
+
 # Load data from CSV
 df = pd.read_csv('neural_test_data/sudoku_m.csv')  # Replace 'your_dataset.csv' with your actual file path
 
@@ -48,7 +72,7 @@ model.load_weights(latest)
 model.fit(
     np.stack(train_data['input_encoded'].to_numpy()),  # Convert Pandas Series to NumPy array
     np.stack(train_data['output_encoded'].to_numpy()),  # Convert Pandas Series to NumPy array
-    epochs=40,
+    epochs=400,
     batch_size=32,
     validation_split=0.2,
     callbacks=[cp_callback]
@@ -71,4 +95,10 @@ input_encoded = np.expand_dims(input_encoded, axis=0)
 a = model.predict(input_encoded)
 a = np.argmax(a, axis=2).flatten()
 a = a.reshape((9, 9))
-print(a)
+
+print("\nMelhor solução encontrada:")
+result = pd.read_csv('results/1.csv', header=None).values
+parity = 81
+for i in range(len(a)):
+    print(a[i])
+print("\nNúmero de erros da solução: ", calculateSolutionError(a))
